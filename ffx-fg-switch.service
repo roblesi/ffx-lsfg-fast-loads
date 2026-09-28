@@ -1,5 +1,5 @@
 [Unit]
-Description=Disable lsfg-vk frame generation while FFX loads into and out of battles
+Description=Disable lsfg-vk frame generation while FFX loads battles and field areas
 
 [Service]
 ExecStart=/usr/bin/python3 %h/.local/bin/ffx-fg-switch.py
