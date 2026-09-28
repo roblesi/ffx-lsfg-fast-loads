@@ -1,8 +1,8 @@
 # ffx-lsfg-fast-loads
 
-Keep **Final Fantasy X HD Remaster** at 120 FPS with [lsfg-vk](https://lsfg-vk.dev/) frame generation on Linux, **without the ~10-second loads** it causes around every battle.
+Keep **Final Fantasy X HD Remaster** at 120 FPS with [lsfg-vk](https://lsfg-vk.dev/) frame generation on Linux, **without the ~10-second loads** it causes around every battle and area change.
 
-A small background service turns frame generation off only while the game loads into or out of a battle, then turns it back on:
+A small background service turns frame generation off only while the game is loading, then turns it back on:
 
 | Transition | Frame generation always on (4x) | With this service |
 |---|---|---|
@@ -20,10 +20,15 @@ Measured on the same save: with frame generation off, the ~550 MB loaded after a
 
 ## How it works
 
-With `logAccess=true`, ffgriever's [External File Loader](https://www.nexusmods.com/finalfantasyxx2hdremaster/mods/150) writes every file the game reads to `hook.log`, with timestamps. Two reads reliably mark the start of the slow loads:
+With `logAccess=true`, ffgriever's [External File Loader](https://www.nexusmods.com/finalfantasyxx2hdremaster/mods/150) writes every file the game reads to `hook.log`, with timestamps. These reads mark the start of the slow loads:
 
-- a file under `ps3data/btlmap/` → a battle is loading;
-- `sound_pc/sfx/<lang>/4003.fev` → the battle is over and the field is loading. It is read at the moment the last enemy dies, before the slow part, and also when a save is loaded.
+| Read | Meaning |
+|---|---|
+| any file under `ps3data/btlmap/` | a battle is loading |
+| `sound_pc/sfx/<lang>/2xxx.fev` or `4xxx.fev` | a field area's sound banks: the field is loading. This is the first read after a battle ends. |
+| `map/<area>/<map>/bin/mapout.vpa` | a field map is loading. This is the first read when moving between areas. |
+
+During a battle the game only reads `0xxx`, `1xxx` and `9999` sound banks, so these rules don't fire mid-fight. Which `4xxx` bank loads depends on the area (for example `4003` in Besaid and `4031` in Kilika), so the rules match the ranges rather than one file.
 
 The service follows `hook.log`, and on either read it sets the FFX profile's `multiplier` to 1 in the lsfg-vk config. Once the game has read nothing for 1.5 s, it restores the previous multiplier. lsfg-vk hot-reloads the multiplier, so the game never needs a restart.
 
@@ -72,7 +77,7 @@ battle loading: loading started (multiplier was 4)
 multiplier -> 4
 loading done (1.2s)
 multiplier -> 1
-battle over: loading started (multiplier was 4)
+field loading: loading started (multiplier was 4)
 multiplier -> 4
 loading done (0.6s)
 ```
@@ -80,7 +85,7 @@ loading done (0.6s)
 ## Notes
 
 - `hook.log` grows by about 3.5 MB per hour of play with access logging on. The loader starts a new one each time the game launches.
-- Loads outside battles, such as moving between areas, are only sped up when the game reads one of the trigger files. The trigger list is at the top of `ffx-fg-switch.py`.
+- The trigger rules are at the top of `ffx-fg-switch.py`. They were worked out from Besaid, the boat and Kilika; if some load in a later area stays slow, its first reads in `hook.log` show what to add.
 - Only FFX is handled, not FFX-2.
 - On distributions that set `KillUserProcesses=yes` (for example CachyOS's Steam Deck mode), run it as the user service rather than a background process started over SSH.
 

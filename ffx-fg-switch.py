@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Turn off lsfg-vk frame generation for FFX while it loads into and out of battles.
+"""Turn off lsfg-vk frame generation for FFX while it loads battles and field areas.
 
 FFX loads a fixed amount per rendered frame, and frame generation caps the
 game's real frame rate (4x at 120 Hz = 30 real FPS), which stretches both
@@ -8,9 +8,11 @@ loading into a battle and the black screen before the victory summary to ~10 s.
 The External File Loader (with logAccess=true in
 modules/config/ff10-file-loader.ini) logs every file the game reads to
 hook.log. Loading starts are recognizable there:
-  btlmap/ file read           -> a battle is loading
-  sfx/<lang>/4003.fev read    -> the battle is over and the field is loading
-                                 (also read when entering the field from a save)
+  btlmap/ file read                -> a battle is loading
+  sfx/<lang>/2xxx.fev or 4xxx.fev  -> a field area's sound banks: the field is
+                                      loading (the first read after a battle)
+  map/<area>/<map>/bin/mapout.vpa  -> a field map is loading (the first read
+                                      when moving between areas)
 On either, the FFX profile multiplier is set to 1; once the game has read
 nothing for a moment, the previous multiplier is restored.
 lsfg-vk hot-reloads the multiplier, so no restart is needed.
@@ -29,7 +31,8 @@ CONF = os.environ.get('LSFGVK_CONFIG') or os.path.expanduser('~/.config/lsfg-vk/
 STATE = os.path.join(os.path.dirname(CONF), 'ffx-fg-switch.json')
 PROFILE = os.environ.get('FFX_LSFG_PROFILE') or 'FINAL FANTASY X/X-2 HD Remaster'
 TRIGGERS = (('battle loading', re.compile(r'ps3data/btlmap/')),
-            ('battle over', re.compile(r'sound_pc/sfx/[^/]+/4003\.fev')))
+            ('field loading', re.compile(r'sound_pc/sfx/[^/]+/[24]\d{3}\.fev'
+                                         r'|/map/[^/]+/[^/]+/bin/mapout\.vpa')))
 QUIET_S = 1.5           # loading counts as done after this long without any reads
 GIVE_UP_S = 30.0        # restore anyway if loading never goes quiet
 POLL_S = 0.1
