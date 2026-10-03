@@ -30,9 +30,12 @@ HOOK_LOG = os.path.join(GAME, 'hook.log')
 CONF = os.environ.get('LSFGVK_CONFIG') or os.path.expanduser('~/.config/lsfg-vk/conf.toml')
 STATE = os.path.join(os.path.dirname(CONF), 'ffx-fg-switch.json')
 PROFILE = os.environ.get('FFX_LSFG_PROFILE') or 'FINAL FANTASY X/X-2 HD Remaster'
-TRIGGERS = (('battle loading', re.compile(r'ps3data/btlmap/')),
+# Case-insensitive: EFL 1.2+ logs files read from the game's own data with their
+# original capitalization (e.g. "Opening native: .../PS3Data/Sound_PC/SFX/US/4031.fev"),
+# while 1.1.x logged everything in lowercase ("Reading VBF: .../sound_pc/sfx/us/...").
+TRIGGERS = (('battle loading', re.compile(r'ps3data/btlmap/', re.I)),
             ('field loading', re.compile(r'sound_pc/sfx/[^/]+/[24]\d{3}\.fev'
-                                         r'|/map/[^/]+/[^/]+/bin/mapout\.vpa')))
+                                         r'|/map/[^/]+/[^/]+/bin/mapout\.vpa', re.I)))
 QUIET_S = 1.5           # loading counts as done after this long without any reads
 GIVE_UP_S = 30.0        # restore anyway if loading never goes quiet
 POLL_S = 0.1

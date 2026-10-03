@@ -37,7 +37,7 @@ If you change the multiplier yourself (in the config or the Decky plugin), the s
 ## Requirements
 
 - FFX/X-2 HD Remaster (Steam) running under Proton
-- [FFX/X-2 HD External File Loader](https://www.nexusmods.com/finalfantasyxx2hdremaster/mods/150) (tested with 1.1.2)
+- [FFX/X-2 HD External File Loader](https://www.nexusmods.com/finalfantasyxx2hdremaster/mods/150) (tested with 1.1.2 and 1.2.0; the game update of 30 September 2026 needs **1.2.0 or later**)
 - [lsfg-vk](https://lsfg-vk.dev/) 2.x with an FFX profile in `~/.config/lsfg-vk/conf.toml`. [Decky LSFG-VK](https://github.com/xXJSONDeruloXx/decky-lsfg-vk) creates one named `FINAL FANTASY X/X-2 HD Remaster` when you configure the game. It requires owning [Lossless Scaling](https://store.steampowered.com/app/993090/Lossless_Scaling/).
 - systemd (user services) and Python 3
 
